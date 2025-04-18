@@ -38,23 +38,6 @@ for i in {1..3}
         ATG_POS=$(echo $ATG_POS|sed 's/:ATG//g') #removes everything but the line number
         echo "$ATG_POS"|cat >>temp/ATGPOS.txt
         echo "=================================="
-       # echo "ATG POS $ATG_POS"
-
-      #  TGA_POS=$(cat "${READING_FRAME[$i]}"|grep -no "TGA")
-       # TGA_POS=$(echo $TGA_POS|sed 's/:TGA//g')
-        #echo "=================================="
-        #echo "TGA POS $TGA_POS"
-
-        #TAG_POS=$(cat "${READING_FRAME[$i]}"|grep -no "TAG")
-        #TAG_POS=$(echo $TAG_POS|sed 's/:TAG//g')
-        #echo "=================================="
-        #echo "TAG POS $TAG_POS"
-
-        #TAA_POS=$(cat "${READING_FRAME[$i]}"|grep -no "TAA")
-        #TAA_POS=$(echo $TAA_POS|sed 's/:TAA//g')
-        #echo "=================================="
-        #echo "TAA POS $TAA_POS"
-
         read -r -a START_POS_ARRAY <<< "$ATG_POS"
         Number_of_Starts=${#START_POS_ARRAY[@]}
 
@@ -62,14 +45,58 @@ for i in {1..3}
         for k in $(seq 0 $((Number_of_Starts-1)))
         do
             TRIP="-"
+            PEP=""
             CURRENT_TRIP_POS=${START_POS_ARRAY[k]} # P
             while [ "$TRIP" != "TAA" ] && [ "$TRIP" != "TAG" ] && [ "$TRIP" != "TGA" ] && [ "$TRIP" != "" ]
             do
                 echo "Current pos "$CURRENT_TRIP_POS
                 TRIP=$(sed -n "${CURRENT_TRIP_POS}p" < ${READING_FRAME[$i]})
                 ORF+=" $TRIP"
+                case $TRIP in
+                  ATG)
+                  PEP="${PEP}M";;
+                  AAA|AAG)
+                  PEP="${PEP}K";;
+                  AAC|AAT)
+                  PEP="${PEP}N";;
+                  AC*)
+                  PEP="${PEP}T";;
+                  ATA|ATC|ATT)
+                  PEP="${PEP}I";;
+                  AGG|AGA|CG*)
+                  PEP="${PEP}R";;
+                  AGC|AGT|TC*)
+                  PEP="${PEP}S";;
+                  CAG|CAA)
+                  PEP="${PEP}Q";;
+                  CAC|CAT)
+                  PEP="${PEP}H";;
+                  CC*)
+                  PEP="${PEP}P";;
+                  CT*)
+                  PEP="${PEP}L";;
+                  TTT|TTC)
+                  PEP="${PEP}F";;
+                  TAT|TAC)
+                  PEP="${PEP}Y";;
+                  TGT|TGC)
+                  PEP="${PEP}C";;
+                  TGG)
+                  PEP="${PEP}W";;
+                  GT*)
+                  PEP="${PEP}V";;
+                  GC*)
+                  PEP="${PEP}A";;
+                  GAT|GAC)
+                  PEP="${PEP}D";;
+                  GAA|GAG)
+                  PEP="${PEP}E";;
+                  GG*)
+                  PEP="${PEP}G";;
+                  TAA|TGA|TAG)
+                  break;;
+                esac
                 echo "POS $CURRENT_TRIP_POS"
-              #  echo "ORF $ORF"
                 CURRENT_TRIP_POS=$((CURRENT_TRIP_POS + 1)) # TRIP_POS increases by +1 anyway --> end position is -1 actually
             done
            #prints information about current orf to resultsfile $j and $l accounts for the start and end of an ORF being shifted 1 or 2 positions to the right due to the global reading frame
@@ -90,9 +117,9 @@ for i in {1..3}
           fi
             echo "GLOBAL FRAME: RF$i Frame Number: $((k+1)) Start: $GLOBAL_START End:$GLOBAL_END LENGTH: $((GLOBAL_END - $GLOBAL_START+1 )) bp"|cat >> OUTPUT/ORF_results.txt # current results are bullshit (triplets instead bp)
             echo "$ORF" |cat  >> OUTPUT/ORF_results.txt
+            echo "$PEP" |cat  >> OUTPUT/ORF_results.txt
             echo "" |cat >> OUTPUT/ORF_results.txt
             echo "==========================" |cat >> OUTPUT/ORF_results.txt
             ORF=""
         done
-      #  echo "====== NEXT FRAME ====" |cat >> OUTPUT/ORF_results.txt
     done
