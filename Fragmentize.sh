@@ -52,7 +52,7 @@ echo 'STARTPOSITION=' $STARTPOSITION
 echo 'FRAGMENT_LENGHT=' $FRAGMENT_LENGHT
 echo 'Number of Fragments=' $NR_OF_FRAGMENTS
 
- echo ">"|cat >> "temp/temp_fragments${2}.txt" #ads ">" as a seperator before ORFS
+ #echo ">"|cat >> "temp/temp_fragments${2}.txt" #ads ">" as a seperator before ORFS
 for j in $(seq 1 $NR_OF_FRAGMENTS)
     do
         for k in $(seq 1 $FRAGMENT_LENGHT)
@@ -70,5 +70,5 @@ for j in $(seq 1 $NR_OF_FRAGMENTS)
         echo "k= $k"
         #echo "ARRAY[k]= "${FRAGMENT_ARRAY[$k]}
        # echo "ARRAY= "${FRAGMENT_ARRAY[*]}
-        echo "${FRAGMENT_ARRAY[$k]}"|cat >> "temp/temp_fragments${2}.txt"
+        echo "${FRAGMENT_ARRAY[$k]}"|cat >> temp/temp_fragments${2}.txt
     done

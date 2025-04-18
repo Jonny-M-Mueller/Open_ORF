@@ -7,8 +7,11 @@ Use Instruction:
 The scripts are intended for use with a unix shell.
 Keep the files 'Fragmentize.sh' and the file 'ORF_finder_v2' in the same directory.
 Use a FASTA file as input but remove the initial line manually, line breaks and empty spaces are removed automatically.
-To generate all ORFs of the + strand type in your terminal:
 
+To generate the complementary (-) strand type in your terminal:
+./min_strander.sh 'inputfile.txt'
+
+To generate all ORFs of the + strand type in your terminal:
 ./ORF_finder_v2.sh 'input_file.txt'
 
 or 
@@ -22,7 +25,16 @@ before using the scripts for the first time you need to make them executable
 chmod +x ORF_finder_v2.sh; chmod +x Fragmentize.sh
 
 
-Current version:
+Current version: April 17th 2025
+=
+added script 'min_strander.sh'
+ORF_finder_v2.sh renamed to ORF_finder
+BUGFIX: ORF_finder now creates empty temporary files instead of writing an empty first line to them
+ORF_finder now prints information about the ORFs (Start and End position, Global Reading frame, ORF number in current global frame, lenght in bp)
+
+EARLIER UPDATES
+=
+INITIAL VERSION
 =
 *extracts ORFs from + strand only
 *works for short and longer sequences
