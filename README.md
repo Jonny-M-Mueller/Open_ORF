@@ -25,13 +25,12 @@ before using the scripts for the first time you need to make them executable
 chmod +x ORF_finder_v2.sh; chmod +x Fragmentize.sh
 
 
-Current version: April 17th 2025
+Current version: April 18th 2025
 =
 added script 'min_strander.sh'
-ORF_finder_v2.sh renamed to ORF_finder
 BUGFIX: ORF_finder now creates empty temporary files instead of writing an empty first line to them
 ORF_finder now prints information about the ORFs (Start and End position, Global Reading frame, ORF number in current global frame, lenght in bp)
-
+ORF_finder now also prints the peptides resulting from the ORFs in single letter code to the results file
 EARLIER UPDATES
 =
 INITIAL VERSION
