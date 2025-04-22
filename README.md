@@ -47,7 +47,7 @@ BUGFIX: ORF_finder now creates empty temporary files instead of writing an empty
 ORF_finder now prints information about the ORFs (Start and End position, Global Reading frame, ORF number in current global frame, lenght in bp)
 ORF_finder now also prints the peptides resulting from the ORFs in single letter code to the results file
 EARLIER UPDATES
-=
+
 INITIAL VERSION
 =
 *extracts ORFs from + strand only
