@@ -3,26 +3,6 @@ bash scripts to extract all open reading frames (ORFs) from a DNA sequence, adit
 
 Goal of the project is to provide a fast terminal based collection of scripts to quickly analyse a DNA Sequence, find possible open reading frames, translating them to peptides and comparing different sequences for matching strings without having to use multiple tools or webservices. The output will be kept simple to be readable by humans but also so it can be used by another program.
 
-Use Instruction:
-The scripts are intended for use with a unix shell.
-Keep the files 'Fragmentize.sh' and the file 'ORF_finder_v2' in the same directory.
-Use a FASTA file as input but remove the initial line manually, line breaks and empty spaces are removed automatically.
-
-To generate the complementary (-) strand type in your terminal:
-./min_strander.sh 'inputfile.txt'
-
-To generate all ORFs of the + strand type in your terminal:
-./ORF_finder_v2.sh 'input_file.txt'
-
-or 
-
-./ORF_finder_v2.sh 'path_to/input_file.txt'
-
-for the provided example file this would be:
-./ORF_finder_v2.sh INPUT/HTR2A.txt
-
-before using the scripts for the first time you need to make them executable
-chmod +x ORF_finder_v2.sh; chmod +x Fragmentize.sh
 
 Planned UPDATE
 =
