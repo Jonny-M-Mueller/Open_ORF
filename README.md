@@ -1,5 +1,5 @@
 # Open_ORF
-bash based bash scripts to extract all open reading frames (ORFs) from a DNA sequence, aditionall features comming later
+bash scripts to extract all open reading frames (ORFs) from a DNA sequence, aditionall features comming later
 
 Goal of the project is to provide a fast terminal based collection of scripts to quickly analyse a DNA Sequence, find possible open reading frames, translating them to peptides and comparing different sequences for matching strings without having to use multiple tools or webservices. The output will be kept simple to be readable by humans but also so it can be used by another program.
 
