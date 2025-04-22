@@ -24,9 +24,24 @@ for the provided example file this would be:
 before using the scripts for the first time you need to make them executable
 chmod +x ORF_finder_v2.sh; chmod +x Fragmentize.sh
 
-
-Current version: April 18th 2025
+Planned UPDATE
 =
+
+ORF_regex.py: compatibility with RNA
+ORF_regex.py: variable In- and Outputlocations
+Organization: seperate project into different branches instead of directories
+README.md:    make file more readable
+
+Current version: April 22th 2025
+=
+
+ORF_regex.py: redid project in python using regular expressions
+ORF_regex.py: currently lacks variable input and output location
+Organisation: seperated project into python_approach and shell_approach and reorganized directories
+
+April 18th 2025
+=
+
 added script 'min_strander.sh'
 BUGFIX: ORF_finder now creates empty temporary files instead of writing an empty first line to them
 ORF_finder now prints information about the ORFs (Start and End position, Global Reading frame, ORF number in current global frame, lenght in bp)
@@ -38,13 +53,6 @@ INITIAL VERSION
 *extracts ORFs from + strand only
 *works for short and longer sequences
 *removes spaces and line breaks automatically
-
-Planned features:
-*improved input sanitation
-*finding ORFs on the - strand
-*annotation of found ORFS (position in original sequence, + or - strand)
-*translating ORFs to peptides
-*rewriting the scripts in python for platform independent work
 
 NOTE:
 I am a Biochemist and a self taught coder. I have tested the scripts and compared the results whith NCBIs ORF_finder (https://www.ncbi.nlm.nih.gov/orffinder/) but there might still be some bugs I have not found yet, espeacially when working with longer sequences.
