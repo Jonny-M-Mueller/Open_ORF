@@ -1,7 +1,7 @@
 #! /bin/ env python3
 import re
 import itertools
-INPUT_FILE=open('test.txt')
+INPUT_FILE=open('INPUT/HTR2A.txt')
 OUTPUT_FILE=open('OUTPUT.txt', "w")
 PRE_INPUT_STRING=INPUT_FILE.read()
 INPUT_FILE.close()
@@ -12,7 +12,6 @@ pattern=re.compile('(?=(ATG([CTGA]{3})*?(TGA|TAA|TAG)))')
 ORF_ITER=pattern.finditer(INPUT_STRING)
 STARCOUNTER=0
 ORF_LIST=[]
-L_STAR_TEST=[]
 for TOUPLE in ORF_ITER:
     ORF_LIST.append(TOUPLE)
 
@@ -26,26 +25,32 @@ for ORF in ORF_LIST:        #ORF is type match --> match.end([group]) match.star
     PREVENT_END_SHIFT=False
     END_EQUAL=False
     L_NO_STAR=False
+    E_FREE_END_TEST=[]
+    E_FREE_END=True
     EARLIER_ORFS=ORF_LIST[0 : ORF_LIST.index(ORF) ]
     LATER_ORFS=ORF_LIST[ORF_LIST.index(ORF) +1 : len(ORF_LIST) ]
+
+
     for e in EARLIER_ORFS:
         if e.end(1) > ORF.start(1):
             START_IN_EARLIER=True
             if e.end(1) > ORF.end(1):
                 END_IN_EARLIER=True
-                break
+                E_FREE_END_TEST.append(e)
+                print(e.start(1), e.end(1))
 
     for l in LATER_ORFS:
-        if not L_STAR_TEST==[]:
-            for x in L_STAR_TEST:
-                if (l.start(1)<x.end(1) and l.end(1) > x.end(1)) or l.end(1)==x.end(1) :
-                    L_NO_STAR=True
+        if not E_FREE_END_TEST==[]:
+            for x in E_FREE_END_TEST:
+                if x.end(1)> l.start(1) and (x.end(1)<l.end(1) or x.end(1)==l.end(1)):
+                    E_FREE_END=False
+                print( "X_ENDE", x.end(1), "l_start", l.start(1), "l_ende",l.end(1))
+
         if l.start(1)<ORF.end(1) and l.end(1) > ORF.end(1): #BUGfix  later Start< current End could also mean OS- LS-LE -OE --> ORF ENd is outside or equal to later END
             END_IN_LATER=True
-            L_STAR_TEST.append(l)
         if l.end(1)==ORF.end(1): # only true for the earlier starting orf --> when L is the current ORF it does not get flagged as equal --> is marked with stars correctly
             END_EQUAL=True
-            L_STAR_TEST.append(l)
+
 
     #search an replace block
     if  START_IN_EARLIER==False and END_IN_LATER==False and END_EQUAL==False:                            # ORF all alone
@@ -66,11 +71,11 @@ for ORF in ORF_LIST:        #ORF is type match --> match.end([group]) match.star
         REPLACE_STRING=ORF.group(1)
         print ("ORF")
         STARADD=0
-        if (END_IN_EARLIER==True or END_EQUAL==True) and L_NO_STAR==-False:
+        if (START_IN_EARLIER==True and END_IN_EARLIER==True) and E_FREE_END==True:
            PREVENT_END_SHIFT=True
            print("Shift prevented")
 
-    print("L_NO_STAR", L_NO_STAR)
+    print("E_FREE_END", E_FREE_END)
     if PREVENT_END_SHIFT==True:
         print("ORF.start", ORF.start(1), "ORF.end(1)", ORF.end(1), "STARCOUNT= ", STARCOUNTER, "||ORF.start+STARCOUNT", ORF.start(1)+ STARCOUNTER, "ORF.End+STARCOUNT", ORF.end(1)+ STARCOUNTER)
         INPUT_STRING=INPUT_STRING[:ORF.start(1) + STARCOUNTER-2] + REPLACE_STRING + INPUT_STRING[ORF.end(1) + STARCOUNTER-2:] # WORKS only one orf DEEP
@@ -85,9 +90,9 @@ for ORF in ORF_LIST:        #ORF is type match --> match.end([group]) match.star
     for i in range(length_trip):
         j=i*3
         k=j+3
-        print(i,j,k)
+       # print(i,j,k)
         CURRENT_TRIP=ORF.group(1)[j:k]
-        print(CURRENT_TRIP )
+        #print(CURRENT_TRIP )
         match CURRENT_TRIP:
              case 'ATG':
                  PEP=PEP + "M"
