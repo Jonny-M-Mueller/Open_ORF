@@ -17,9 +17,9 @@ removed all shell scripts (still available via earlier commits)
 merged up-to-date python branch into main branch  
 
 ORF_regex: input-file is now determined directly from the terminal/command line  
-ORF_regex: a help page with syntax and a short description is now available (OPTION_ -h/--help)  
+ORF_regex: a help page with syntax and a short description is now available (OPTION: -h/--help)  
 ORF_regex: now supports creation of markdown files highlighting the coding region of the input sequence (OPTION_ -m/--markdown)  
-ORF_regex: can now analyse the complementary strand (OPTION_ -c/--complementary)
+ORF_regex: can now analyse the complementary strand (OPTION: -c/--complementary)
 
 
 April 22th 2025
