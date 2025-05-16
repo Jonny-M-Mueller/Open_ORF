@@ -3,14 +3,79 @@ import re
 import itertools
 import argparse
 
+def ORF_OUTPUT():
+        global  CONTINUED_ORF_COUNT
+        print('======================================',file=OUTPUT_FILE )
+        if STRAND=="+":
+            STRAND_FOR_POS=INPUT_STRING
+            print("ORF:",ORF_LIST.index(ORF), file=OUTPUT_FILE)
+            print('START:', ORF.start(1), '    END:', ORF.end(1),'    LENGTH:', length, 'STRAND:  +',  file=OUTPUT_FILE )
+            CONTINUED_ORF_COUNT=+1 # ORF_LIST is reset for complementary strand; CONTINUED_ORF_COUNT keeps track of ORF number
+        if STRAND=="-":
+            STRAND_FOR_POS=COMPLEMENTARY
+            print("ORF:",ORF_LIST.index(ORF) + CONTINUED_ORF_COUNT, file=OUTPUT_FILE)
+            print('START:', ORF.start(1), '    END:', ORF.end(1),'    LENGTH:', length, 'STRAND:  -',  file=OUTPUT_FILE )
+            print("Matching positions on forward strand:",file=OUTPUT_FILE)
+            print(' START:', len(INPUT_STRING)- ORF.start(1),'   END:',len(INPUT_STRING)- ORF.end(1), file=OUTPUT_FILE)
+        print( ORF.group(1),file=OUTPUT_FILE)
+        print(PEP,file=OUTPUT_FILE)
+
+        if args.tata==True:
+            for TATA in Tata_RANGE_LIST:
+                print("TATA-Box found within", TATA_DISTANCE, "bp", file=OUTPUT_FILE)
+                print("TATA-Box start:", TATA.start(1), "relative to ORF:", ORF.start(1)-TATA.start(1), file=OUTPUT_FILE)
+                print("Sequence:", STRAND_FOR_POS[TATA.start(1): ORF.start(1)+3],"...", file=OUTPUT_FILE)
+        if args.kozak==True and ORF.start(1) >= 6:
+            if KOZAK_COMPARE[0]=="1":
+                print("Strong Kozak-Sequence found (-3 bp = G/A AND +4 bp = G )", file=OUTPUT_FILE)
+                print("STROOOOOOOOOOOOOOOOOONG")
+            if KOZAK_COMPARE[1]=="1":
+                print("Medium strength Kozak-Sequence found (-3 bp = G/A OR +4 bp = G, but not both )", file=OUTPUT_FILE)
+            if KOZAK_COMPARE[2]=="1":
+                print("Weak Kozak-Sequence found (-3 bp = T/C AND +4 bp = T/C/A )", file=OUTPUT_FILE)
+            print("Sequence:", STRAND_FOR_POS[KOZAK_SEQUENCE.start(1): KOZAK_SEQUENCE.end(1)], file=OUTPUT_FILE)
+
+
+
 parser = argparse.ArgumentParser(description='A script to locate and translate all Open Reading Frames (ORFs) in a Sequence. Optional analysis of complementary strand and Markdown Output')
 parser.add_argument('-m', '--markdown',action='store_true', help="enables output of markdown files 'forward.md' (and 'reverse.md' if '-c' flag is set)")
 parser.add_argument('-c', '--complementary',action='store_true', help="complementary strand is generated and analysed")
 parser.add_argument('-t', '--tata', action= 'store_true', help="checks for presence of TATA-Box ('TATA[TA]A[TA]')")
 parser.add_argument('-d', '--distance', type=int, help="sets maximum distance of TATA-Box (counted from first T) to start of ORF (to A in ATG), defaults to 35 bp if not set, ignored when -t flag is not set")
 parser.add_argument('-k', '--kozak', action= 'store_true', help="evaluates strength of Kozak_sequence by checking the -3 bp and +4 bp site relative to the ORf's start, assumes eukariotic Sequence, DOES NOT evaluate less conserved bases in the putative Kozak-Sequence")
+parser.add_argument('-f', '--Filter', type=str, help="Filters ORFs depending on char: 'S': ORFs with a strong Kozak sequence, 'M': ORFs with strong or medium Kozak-sequence, 'T': ORFs [distance] bp downstream of TATA-sequence. Logic: Kozak filters are linked with 'OR' (-f SM --> ORF is filtered if it has atleast a medium strength Kozak sequence), while TATA_obx filter is linked with 'AND' (-f TS --> ORF is only filtered if it has a Strong Kozak Sequence and a TATA-Box) by default. 'OR' behaviour can be set by including the lettter 'O'. 'XOR' behaviour is forced by includign the letter 'X'  ")
 parser.add_argument('file_name', help="location of file containing the Input Sequence")
 args = parser.parse_args()
+
+if not args.Filter==None:
+    Filter_ONLY="Both" # used later in case only TATA or Kozak is filtered for
+    Filter_TATA=False
+    Filter_KOZAK="000"
+    if 'T' in args.Filter:
+        Filter_TATA=True
+    if 'S' in args.Filter:
+        Filter_KOZAK="1"+Filter_KOZAK[1:]
+    if 'M' in args.Filter:
+        Filter_KOZAK=Filter_KOZAK[:1]+"1"+Filter_KOZAK[2:]
+    if 'W' in args.Filter:
+        Filter_KOZAK=Filter_KOZAK[:2]+"1"
+    if Filter_TATA==True and not Filter_KOZAK=="000":
+        if 'O' in args.Filter:
+            Filter_Operator='Or'
+        elif 'X' in args.Filter:
+            Filter_Operator='Xor'
+        elif 'N' in args.Filter:
+            Filter_Operator='Nand'
+        else:
+            Filter_Operator='And'
+    elif Filter_TATA==False and not Filter_KOZAK=="000":
+        Filter_ONLY="KOZAK"
+    elif Filter_TATA==True and Filter_KOZAK=="000":
+        Filter_ONLY="TATA"
+    elif Filter_TATA==False and Filter_KOZAK=="000":
+        print("Error, selected no filter conditions!")
+        exit()
+
 
 if args.complementary:
     print("Complementrary=true")
@@ -71,6 +136,7 @@ for SEQUENCE in (SEQUENCES_LIST):
         if args.markdown==True:
             MD_FILE=open('complementary.md', "w")
 
+    #finds all putative TATA-Boxes and all putative Kozak-Sequences. For TATA-Boxes: handles max distance to ORF
     if args.tata==True:
         TATA_ITER=TATA_pattern.finditer(SEQUENCE)
         TATA_LIST=[]
@@ -214,51 +280,66 @@ for SEQUENCE in (SEQUENCES_LIST):
                 case 'TAA' | 'TGA' | 'TAG':
                     PEP=PEP
 
-        print('======================================',file=OUTPUT_FILE )
-        if STRAND=="+":
-            print("ORF:",ORF_LIST.index(ORF), file=OUTPUT_FILE)
-            print('START:', ORF.start(1), '    END:', ORF.end(1),'    LENGTH:', length, 'STRAND:  +',  file=OUTPUT_FILE )
-            CONTINUED_ORF_COUNT=CONTINUED_ORF_COUNT +1 # ORF_LIST is reset for complementary strand; CONTINUED_ORF_COUNT keeps track of ORF number
-        if STRAND=="-":
-            print("ORF:",ORF_LIST.index(ORF) + CONTINUED_ORF_COUNT, file=OUTPUT_FILE)
-            print('START:', ORF.start(1), '    END:', ORF.end(1),'    LENGTH:', length, 'STRAND:  -',  file=OUTPUT_FILE )
-            print("Matching positions on forward strand:",file=OUTPUT_FILE)
-            print(' START:', len(INPUT_STRING)- ORF.start(1),'   END:',len(INPUT_STRING)- ORF.end(1), file=OUTPUT_FILE)
-        print( ORF.group(1),file=OUTPUT_FILE)
-        print(PEP,file=OUTPUT_FILE)
+        #resets List of potential TATA-Boxes in range and resets the Kozak_sequence of the last ORF before processing next ORF
+        #also resets the flags for Found Tatabox/ flag for Kozak-Sequence strength
 
-        #TATA and Kozak output
+        #Checks wether (a) TATA-Box(es) is/are in range and the strength of the Kozak-Sequence of the current ORF (measured at -3/+4 bp conservation relative to ORF start)
+        #Sequence and location of TATA-BOX(es) and the KOZAK_sequence is saved
         if args.tata==True:
+            TATA_IN_RANGE=False
+            Tata_RANGE_LIST=[]
             for TATA in TATA_LIST:
                 if (ORF.start(1)-TATA.start(1) <= TATA_DISTANCE) and (ORF.start(1) - TATA.start(1) >0):
-                    print("TATA-Box found within", TATA_DISTANCE, "bp", file=OUTPUT_FILE)
-                    print("TATA-Box start:", TATA.start(1), "relative to ORF:", ORF.start(1)-TATA.start(1), file=OUTPUT_FILE)
-                    if STRAND=="+":
-                        print("Sequence:", INPUT_STRING[TATA.start(1): ORF.start(1)+3],"...", file=OUTPUT_FILE)
-                    if STRAND=="-":
-                        print("Sequence:", COMPLEMENTARY[TATA.start(1): ORF.start(1)+3],"...", file=OUTPUT_FILE)
+                    TATA_IN_RANGE=True
+                    Tata_RANGE_LIST.append(TATA)
+
         if args.kozak==True:
+            KOZAK_COMPARE="000"
+            KOZAK_SEQUENCE=""
             for K_STRONG in K_STRONG_LIST:
                 if ORF.start(1)-K_STRONG.start(1)==6:
-                    print("Strong Kozak-Sequence found (-3 bp = G/A AND +4 bp = G )", file=OUTPUT_FILE)
-                    if STRAND=="+":
-                        print("Sequence:", INPUT_STRING[K_STRONG.start(1): K_STRONG.end(1)], file=OUTPUT_FILE)
-                    if STRAND=="-":
-                        print("Sequence:", COMPLEMENTARY[K_STRONG.start(1): K_STRONG.end(1)], file=OUTPUT_FILE)
+                    KOZAK_COMPARE="1"+KOZAK_COMPARE[1:]
+                    KOZAK_SEQUENCE=K_STRONG
+                    print("K_COMPARE:", KOZAK_COMPARE)
+
             for K_MEDIUM in K_MEDIUM_LIST:
                 if ORF.start(1)-K_MEDIUM.start(1)==6:
-                    print("Medium strength Kozak-Sequence found (-3 bp = G/A OR +4 bp = G, but not both )", file=OUTPUT_FILE)
-                    if STRAND=="+":
-                        print("Sequence:", INPUT_STRING[K_MEDIUM.start(1): K_MEDIUM.end(1)], file=OUTPUT_FILE)
-                    if STRAND=="-":
-                        print("Sequence:", COMPLEMENTARY[K_MEDIUM.start(1): K_MEDIUM.end(1)], file=OUTPUT_FILE)
+                    KOZAK_COMPARE=KOZAK_COMPARE[:1] +"1"+KOZAK_COMPARE[2:]
+                    KOZAK_SEQUENCE=K_MEDIUM
+                    print("K_COMPARE:", KOZAK_COMPARE)
+
             for K_WEAK in K_WEAK_LIST:
                 if ORF.start(1)-K_WEAK.start(1)==6:
-                    print("Weak Kozak-Sequence found (-3 bp = T/C AND +4 bp = T/C/A )", file=OUTPUT_FILE)
-                    if STRAND=="+":
-                        print("Sequence:", INPUT_STRING[K_WEAK.start(1): K_WEAK.end(1)], file=OUTPUT_FILE)
-                    if STRAND=="-":
-                        print("Sequence:", COMPLEMENTARY[K_WEAK.start(1): K_WEAK.end(1)], file=OUTPUT_FILE)
+                    KOZAK_COMPARE=KOZAK_COMPARE[:2] +"1"
+                    KOZAK_SEQUENCE=K_WEAK
+                    print("K_COMPARE:", KOZAK_COMPARE)
+
+        #matches Filter Logic Operator from input, then checks the flags set for the current ORF with that Operator. If a true statement results the ORF and related Output is appended to the OUTPUT.txt file
+        if not args.Filter==None: # TODO: have to filter for NOT!!!!
+            if Filter_ONLY=="TATA":
+                if TATA_IN_RANGE==Filter_TATA:
+                    ORF_OUTPUT()
+            if Filter_ONLY=="KOZAK":
+                if Filter_KOZAK==KOZAK_COMPARE:
+                    ORF_OUTPUT()
+            if Filter_ONLY=="Both":
+                match Filter_Operator:
+                    case "Or":
+                        if TATA_IN_RANGE==Filter_TATA or (Filter_KOZAK[0]==KOZAK_COMPARE[0]=="1" or Filter_KOZAK[1]== KOZAK_COMPARE[1]=="1" or Filter_KOZAK[2]==KOZAK_COMPARE[2]=="1"):
+                            ORF_OUTPUT()
+                    case "Xor":
+                        if TATA_IN_RANGE==Filter_TATA ^ (Filter_KOZAK[0]==KOZAK_COMPARE[0]=="1" or Filter_KOZAK[1]==KOZAK_COMPARE[1]=="1" or Filter_KOZAK[2]==KOZAK_COMPARE[2]=="1"):
+                            ORF_OUTPUT()
+                    case "Nand":
+                        if not (TATA_IN_RANGE==Filter_TATA and (Filter_KOZAK[0]==KOZAK_COMPARE[0]=="1" or Filter_KOZAK[1]==KOZAK_COMPARE[1]=="1" or Filter_KOZAK[2]==KOZAK_COMPARE[2]=="1")):
+                            ORF_OUTPUT()
+                    case "And":
+                        if TATA_IN_RANGE==Filter_TATA and (Filter_KOZAK[0]==KOZAK_COMPARE[0]=="1" or Filter_KOZAK[1]==KOZAK_COMPARE[1]=="1" or Filter_KOZAK[2]==KOZAK_COMPARE[2]=="1"):
+                            ORF_OUTPUT()
+        #if no filter was set, simply print the output to the OUTPUT.txt file
+        if args.Filter==None:
+            ORF_OUTPUT()
+
 
 if args.markdown==True:
     print(SEQUENCE, file=MD_FILE)
